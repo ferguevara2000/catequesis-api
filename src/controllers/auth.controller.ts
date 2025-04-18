@@ -27,16 +27,30 @@ export const login = async (req: Request, res: Response) => {
   const token = jwt.sign(
     { id: user.id, email: user.email },
     process.env.JWT_SECRET!,
-    { expiresIn: '1d' }
+    { expiresIn: '1h' }
   );
 
   // Guardamos JWT como cookie segura
   res.cookie('token', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 1000 * 60 * 60 * 24, // 1 día
+    sameSite: 'lax',
+    maxAge: 3600000, // 1 hora
   });
 
-  res.json({ message: 'Login exitoso' });
+  res.json({ 
+    message: 'Login exitoso',
+    usuario: user.usuario,
+    rol: user.rol
+  });
+};
+
+export const logout = (req: Request, res: Response) => {
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax'
+  });
+
+  res.status(200).json({ message: 'Sesión cerrada correctamente' });
 };

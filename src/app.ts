@@ -7,7 +7,11 @@ import authRoutes from './routes/auth.routes'
 const PORT = process.env.PORT || 3001
 
 const app = express()
-app.use(cors())
+app.use(cors({
+    origin: 'http://localhost:3000', // 👈 el origen de tu frontend
+    credentials: true                // 👈 para permitir envío de cookies
+  }));
+  
 app.use(express.json())
 app.use(cookieParser())
 app.use('/api/auth', authRoutes)
