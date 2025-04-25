@@ -156,3 +156,33 @@ export const deleteUsuario = async (req: Request, res: Response) => {
     return res.status(500).json({ error: "Error en el servidor" });
   }
 };
+
+// Actualizar solo la contraseña
+export const updatePassword = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { contraseña } = req.body;
+
+    // Usamos el schema solo para validar la contraseña
+    const parsed = usuarioSchema.pick({ contraseña: true }).safeParse({ contraseña });
+
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.format() });
+    }
+
+    const hashedPassword = await bcrypt.hash(contraseña.trim(), 10);
+
+    const { error } = await supabase
+      .from("usuario")
+      .update({ contraseña: hashedPassword })
+      .eq("id", id);
+
+    if (error) {
+      return res.status(500).json({ error: "Error al actualizar contraseña" });
+    }
+
+    return res.json({ message: "Contraseña actualizada correctamente" });
+  } catch (error) {
+    return res.status(500).json({ error: "Error en el servidor" });
+  }
+};

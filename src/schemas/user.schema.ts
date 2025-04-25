@@ -24,10 +24,11 @@ export const usuarioSchema = z.object({
     .trim()
     .email({ message: "El correo electrónico no es válido" }),
 
-  phone: z
+    phone: z
     .string()
-    .trim()
-    .regex(/^\d{10}$/, {
+    .optional()
+    .transform((val) => val?.trim() ?? "")
+    .refine((val) => !val || /^\d{10}$/.test(val), {
       message: "El número de teléfono debe tener exactamente 10 dígitos",
     }),
 
