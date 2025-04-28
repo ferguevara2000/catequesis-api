@@ -4,6 +4,7 @@ import cors from "cors"
 import cookieParser from "cookie-parser"
 import authRoutes from './routes/auth.routes'
 import userRoutes from './routes/user.routes'
+import coursesRoutes from './routes/curso.routes'
 
 const PORT = process.env.PORT || 3001
 const allowedOrigins = [
@@ -28,5 +29,6 @@ app.use(cookieParser())
 
 app.use('/api/auth', authRoutes)
 app.use('/api/usuarios', userRoutes)
+app.use('/api/cursos', coursesRoutes)
 
 app.listen(PORT, () => console.log(`Listo por el puerto ${PORT}`))
