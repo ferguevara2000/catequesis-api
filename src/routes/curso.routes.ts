@@ -6,11 +6,13 @@ import {
   getCursoById,
   updateCurso,
   deleteCurso,
+  getNivelesCatequesis,
 } from "../controllers/curso.controller";
 
 const router = Router();
 
 // Rutas principales (suponiendo que usarás /api/cursos)
+router.get("/niveles", getNivelesCatequesis as any);
 router.get("/", getCursos as any);
 router.get("/:id", getCursoById as any);
 router.post("/", createCurso as any);

@@ -35,10 +35,24 @@ export const createCurso = async (req: Request, res: Response) => {
   }
 };
 
-// Obtener todos los cursos
+// Obtener todos los cursos (con nombre del nivel)
 export const getCursos = async (_req: Request, res: Response) => {
   try {
-    const { data, error } = await supabase.from("cursos").select("*");
+    const { data, error } = await supabase
+      .from("cursos")
+      .select(`
+        id,
+        nombre,
+        descripcion,
+        fecha_inicio,
+        fecha_fin,
+        horario,
+        nivel_id,
+        niveles_catequesis (
+          id,
+          nombre
+        )
+      `);
 
     if (error) {
       return res.status(500).json({ error: "Error al obtener cursos" });
@@ -50,14 +64,24 @@ export const getCursos = async (_req: Request, res: Response) => {
   }
 };
 
-// Obtener curso por ID
+
+
+// Obtener curso por ID (con nombre del nivel)
 export const getCursoById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
     const { data, error } = await supabase
       .from("cursos")
-      .select("*")
+      .select(`
+        id,
+        nombre,
+        descripcion,
+        fecha_inicio,
+        fecha_fin,
+        horario,
+        niveles_catequesis: nivel_id ( id, nombre )
+      `)
       .eq("id", id)
       .maybeSingle();
 
@@ -111,6 +135,23 @@ export const deleteCurso = async (req: Request, res: Response) => {
     }
 
     return res.json({ message: "Curso eliminado correctamente" });
+  } catch (error) {
+    return res.status(500).json({ error: "Error en el servidor" });
+  }
+};
+
+export const getNivelesCatequesis = async (_req: Request, res: Response) => {
+  try {
+    const { data, error } = await supabase
+      .from("niveles_catequesis")
+      .select("id, nombre")
+      .order("id", { ascending: true }); // Opcional: para ordenar
+
+    if (error) {
+      return res.status(500).json({ error: "Error al obtener los niveles" });
+    }
+
+    return res.json(data);
   } catch (error) {
     return res.status(500).json({ error: "Error en el servidor" });
   }
