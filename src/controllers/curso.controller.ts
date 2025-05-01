@@ -1,4 +1,3 @@
-// src/controllers/curso.controller.ts
 import { Request, Response } from "express";
 import { cursoSchema } from "../schemas/curso.schema";
 import { supabase } from "../lib/supabase";
@@ -12,7 +11,7 @@ export const createCurso = async (req: Request, res: Response) => {
       return res.status(400).json({ error: parsed.error.format() });
     }
 
-    const { nombre, descripcion, nivel_id, fecha_inicio, fecha_fin, horario } = parsed.data;
+    const { nombre, descripcion, nivel_id, fecha_inicio, fecha_fin, horario, catequista_id } = parsed.data;
 
     const { error } = await supabase.from("cursos").insert([
       {
@@ -22,6 +21,7 @@ export const createCurso = async (req: Request, res: Response) => {
         fecha_inicio,
         fecha_fin,
         horario,
+        catequista_id,
       },
     ]);
 
@@ -35,7 +35,7 @@ export const createCurso = async (req: Request, res: Response) => {
   }
 };
 
-// Obtener todos los cursos (con nombre del nivel)
+// Obtener todos los cursos (con nombre del nivel y catequista)
 export const getCursos = async (_req: Request, res: Response) => {
   try {
     const { data, error } = await supabase
@@ -47,8 +47,11 @@ export const getCursos = async (_req: Request, res: Response) => {
         fecha_inicio,
         fecha_fin,
         horario,
-        nivel_id,
-        niveles_catequesis (
+        nivel: niveles_catequesis (
+          id,
+          nombre
+        ),
+        catequista: usuario (
           id,
           nombre
         )
@@ -64,9 +67,7 @@ export const getCursos = async (_req: Request, res: Response) => {
   }
 };
 
-
-
-// Obtener curso por ID (con nombre del nivel)
+// Obtener curso por ID (con nombre del nivel y catequista)
 export const getCursoById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -80,7 +81,14 @@ export const getCursoById = async (req: Request, res: Response) => {
         fecha_inicio,
         fecha_fin,
         horario,
-        niveles_catequesis: nivel_id ( id, nombre )
+        nivel: niveles_catequesis (
+          id,
+          nombre
+        ),
+        catequista: usuario (
+          id,
+          nombre
+        )
       `)
       .eq("id", id)
       .maybeSingle();
@@ -140,12 +148,13 @@ export const deleteCurso = async (req: Request, res: Response) => {
   }
 };
 
+// Obtener niveles de catequesis
 export const getNivelesCatequesis = async (_req: Request, res: Response) => {
   try {
     const { data, error } = await supabase
       .from("niveles_catequesis")
       .select("id, nombre")
-      .order("id", { ascending: true }); // Opcional: para ordenar
+      .order("id", { ascending: true });
 
     if (error) {
       return res.status(500).json({ error: "Error al obtener los niveles" });

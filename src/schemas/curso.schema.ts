@@ -18,6 +18,10 @@ export const cursoSchema = z.object({
     .number({ invalid_type_error: "El nivel es obligatorio" })
     .int({ message: "El nivel debe ser un número entero" }),
 
+  catequista_id: z
+    .number({ invalid_type_error: "El catequista es obligatorio" })
+    .int({ message: "El catequista debe ser un número entero" }),
+
   fecha_inicio: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Formato de fecha de inicio inválido (YYYY-MM-DD)" }),
@@ -26,7 +30,10 @@ export const cursoSchema = z.object({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Formato de fecha de fin inválido (YYYY-MM-DD)" }),
 
-  horario: z
+    horario: z
     .string()
-    .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, { message: "Formato de horario inválido (HH:mm)" }),
+    .regex(
+      /^(Lunes|Martes|Miércoles|Jueves|Viernes|Sábado|Domingo),\s(1[0-2]|0?[1-9]):[0-5][0-9]\s?(am|pm)$/i,
+      { message: "Formato de horario inválido (Ej: Domingo, 8:00 am)" }
+    ),
 });
