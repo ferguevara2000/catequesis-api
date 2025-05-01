@@ -186,3 +186,20 @@ export const updatePassword = async (req: Request, res: Response) => {
     return res.status(500).json({ error: "Error en el servidor" });
   }
 };
+
+export const getCatequistas = async (_req: Request, res: Response) => {
+  try {
+    const { data, error } = await supabase
+      .from("usuario")
+      .select("id, nombre")
+      .eq("rol", "Catequista");
+
+    if (error) {
+      return res.status(500).json({ error: "Error al obtener catequistas" });
+    }
+
+    return res.json(data);
+  } catch (error) {
+    return res.status(500).json({ error: "Error en el servidor" });
+  }
+};

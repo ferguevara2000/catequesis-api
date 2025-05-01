@@ -5,6 +5,7 @@ import {getUsuarios} from '../controllers/user.controller';
 const router = Router();
 
 router.get('/', UsuarioController.getUsuarios as any);
+router.get('/catequistas', UsuarioController.getCatequistas as any)
 router.get('/:id', UsuarioController.getUsuarioById as any);
 router.post('/', UsuarioController.createUsuario as any);
 router.put('/:id', UsuarioController.updateUsuario as any);
