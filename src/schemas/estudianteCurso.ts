@@ -2,7 +2,7 @@
 import { z } from "zod";
 
 // Definir el estado como un enum
-export const estadoEnum = z.enum(["activo", "retirado", "aprovado"]);
+export const estadoEnum = z.enum(["activo", "retirado", "aprobado"]);
 
 // Schema para la validación
 export const estudianteCursoSchema = z.object({

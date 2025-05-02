@@ -5,32 +5,40 @@ import { supabase } from "../lib/supabase";
 
 // Crear estudiante en curso
 export const createEstudianteCurso = async (req: Request, res: Response) => {
-  try {
-    const parsed = estudianteCursoSchema.safeParse(req.body);
-
-    if (!parsed.success) {
-      return res.status(400).json({ error: parsed.error.format() });
+    try {
+      const parsed = estudianteCursoSchema.safeParse(req.body);
+  
+      if (!parsed.success) {
+        return res.status(400).json({ error: parsed.error.format() });
+      }
+  
+      const { usuario_id, curso_id, estado } = parsed.data;
+  
+      const { error } = await supabase.from("estudiantes_cursos").insert([
+        { usuario_id, curso_id, estado },
+      ]);
+  
+      if (error) {
+        // Manejo de error por restricción única
+        if (error.code === "23505" || error.message.includes("duplicate key")) {
+          return res.status(409).json({
+            error: "El estudiante ya está asignado a este curso.",
+          });
+        }
+  
+        return res.status(500).json({
+          error: "Error al asignar estudiante al curso",
+          detalle: error.message,
+        });
+      }
+  
+      return res.status(201).json({
+        message: "Estudiante asignado al curso exitosamente",
+      });
+    } catch (error) {
+      return res.status(500).json({ error: "Error en el servidor" });
     }
-
-    const { usuario_id, curso_id, estado } = parsed.data;
-
-    const { error } = await supabase.from("estudiantes_cursos").insert([
-      {
-        usuario_id,
-        curso_id,
-        estado,
-      },
-    ]);
-
-    if (error) {
-      return res.status(500).json({ error: "Error al asignar estudiante al curso" });
-    }
-
-    return res.status(201).json({ message: "Estudiante asignado al curso exitosamente" });
-  } catch (error) {
-    return res.status(500).json({ error: "Error en el servidor" });
-  }
-};
+  };  
 
 // Obtener todos los estudiantes en cursos
 export const getEstudiantesCursos = async (_req: Request, res: Response) => {
@@ -39,8 +47,8 @@ export const getEstudiantesCursos = async (_req: Request, res: Response) => {
       `
       id,
       estado,
-      usuarios: usuario_id (id, nombre), 
-      cursos: curso_id (id, nombre)
+      usuario: usuario_id (id, nombre), 
+      curso: curso_id (id, nombre)
       `
     );
 
@@ -65,8 +73,8 @@ export const getEstudianteCursoById = async (req: Request, res: Response) => {
         `
         id,
         estado,
-        usuarios: usuario_id (id, nombre), 
-        cursos: curso_id (id, nombre)
+        usuario: usuario_id (id, nombre), 
+        curso: curso_id (id, nombre)
         `
       )
       .eq("id", id)
@@ -88,28 +96,41 @@ export const getEstudianteCursoById = async (req: Request, res: Response) => {
 
 // Actualizar estado del estudiante en curso
 export const updateEstudianteCurso = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-
-    const parsed = estudianteCursoSchema.partial().safeParse(req.body);
-
-    if (!parsed.success) {
-      return res.status(400).json({ error: parsed.error.format() });
+    try {
+      const { id } = req.params;
+  
+      const parsed = estudianteCursoSchema.partial().safeParse(req.body);
+  
+      if (!parsed.success) {
+        return res.status(400).json({ error: parsed.error.format() });
+      }
+  
+      const updates = parsed.data;
+  
+      const { error } = await supabase
+        .from("estudiantes_cursos")
+        .update(updates)
+        .eq("id", id);
+  
+      if (error) {
+        // Detecta error por restricción UNIQUE
+        if (error.code === "23505" || error.message.includes("duplicate key")) {
+          return res.status(409).json({
+            error: "Ya existe otro registro con el mismo estudiante y curso.",
+          });
+        }
+  
+        return res.status(500).json({
+          error: "Error al actualizar estado del estudiante en curso",
+          detalle: error.message,
+        });
+      }
+  
+      return res.json({ message: "Estado de estudiante actualizado correctamente" });
+    } catch (error) {
+      return res.status(500).json({ error: "Error en el servidor" });
     }
-
-    const updates = parsed.data;
-
-    const { error } = await supabase.from("estudiantes_cursos").update(updates).eq("id", id);
-
-    if (error) {
-      return res.status(500).json({ error: "Error al actualizar estado del estudiante en curso" });
-    }
-
-    return res.json({ message: "Estado de estudiante actualizado correctamente" });
-  } catch (error) {
-    return res.status(500).json({ error: "Error en el servidor" });
-  }
-};
+  };  
 
 // Eliminar estudiante de curso
 export const deleteEstudianteCurso = async (req: Request, res: Response) => {
