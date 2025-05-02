@@ -203,3 +203,20 @@ export const getCatequistas = async (_req: Request, res: Response) => {
     return res.status(500).json({ error: "Error en el servidor" });
   }
 };
+
+export const getEstudiantes = async (_req: Request, res: Response) => {
+  try {
+    const { data, error } = await supabase
+      .from("usuario")
+      .select("id, nombre")
+      .eq("rol", "Estudiante");
+
+    if (error) {
+      return res.status(500).json({ error: "Error al obtener los estudiantes" });
+    }
+
+    return res.json(data);
+  } catch (error) {
+    return res.status(500).json({ error: "Error en el servidor" });
+  }
+};
