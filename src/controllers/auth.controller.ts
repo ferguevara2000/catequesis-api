@@ -40,6 +40,7 @@ export const login = async (req: Request, res: Response) => {
 
   res.json({ 
     message: 'Login exitoso',
+    id: user.id,
     nombre: user.nombre,
     usuario: user.usuario,
     rol: user.rol

@@ -107,6 +107,36 @@ export const getCursoById = async (req: Request, res: Response) => {
   }
 };
 
+export const getCursosByCatequistaId = async (req: Request, res: Response) => {
+  try {
+    const { catequistaId } = req.params;
+
+    const { data, error } = await supabase
+      .from("cursos")
+      .select(`
+        id,
+        nombre,
+        descripcion,
+        fecha_inicio,
+        fecha_fin,
+        horario,
+        nivel: niveles_catequesis (
+          id,
+          nombre
+        )
+      `)
+      .eq("catequista_id", catequistaId);
+
+    if (error) {
+      return res.status(500).json({ error: "Error al obtener cursos del catequista" });
+    }
+
+    return res.json(data);
+  } catch (error) {
+    return res.status(500).json({ error: "Error en el servidor" });
+  }
+};
+
 // Actualizar curso
 export const updateCurso = async (req: Request, res: Response) => {
   try {
