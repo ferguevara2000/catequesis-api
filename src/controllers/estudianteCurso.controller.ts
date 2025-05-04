@@ -62,6 +62,33 @@ export const getEstudiantesCursos = async (_req: Request, res: Response) => {
   }
 };
 
+export const getEstudiantesByCursoId = async (req: Request, res: Response) => {
+    try {
+      const { cursoId } = req.params;
+  
+      const { data, error } = await supabase
+        .from("estudiantes_cursos")
+        .select(`
+          id,
+          estado,
+          usuario: usuario (
+            id,
+            nombre,
+            email
+          )
+        `)
+        .eq("curso_id", cursoId);
+  
+      if (error) {
+        return res.status(500).json({ error: "Error al obtener estudiantes del curso" });
+      }
+  
+      return res.json(data);
+    } catch (error) {
+      return res.status(500).json({ error: "Error en el servidor" });
+    }
+  };
+
 // Obtener un estudiante en curso por ID
 export const getEstudianteCursoById = async (req: Request, res: Response) => {
   try {
