@@ -6,6 +6,7 @@ import authRoutes from './routes/auth.routes'
 import userRoutes from './routes/user.routes'
 import coursesRoutes from './routes/curso.routes'
 import estudianteCursoRoutes from './routes/estudianteCurso.route'
+import asistenciaRoutes from './routes/asistencia.routes'
 
 const PORT = process.env.PORT || 3001
 const allowedOrigins = [
@@ -32,5 +33,6 @@ app.use('/api/auth', authRoutes)
 app.use('/api/usuarios', userRoutes)
 app.use('/api/cursos', coursesRoutes)
 app.use('/api/estudiantesCurso', estudianteCursoRoutes)
+app.use('/api/asistencia', asistenciaRoutes)
 
 app.listen(PORT, () => console.log(`Listo por el puerto ${PORT}`))

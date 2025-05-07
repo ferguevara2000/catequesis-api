@@ -32,7 +32,7 @@ export const usuarioSchema = z.object({
       message: "El número de teléfono debe tener exactamente 10 dígitos",
     }),
 
-  rol: z.enum(["Administrador", "Catequista", "Estudiante"], {
+  rol: z.enum(["Administrador", "Catequista", "Estudiante", "Parroco", "Tesorero"], {
     errorMap: () => ({ message: "Rol inválido" }),
   }),
 
