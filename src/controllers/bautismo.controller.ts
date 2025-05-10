@@ -5,10 +5,19 @@ import { bautismoSchema } from "../schemas/bautismo.schema";
 
 // Obtener todos
 export const getBautismos = async (_req: Request, res: Response) => {
-  const { data, error } = await supabase.from("bautismos").select("*");
-  if (error) return res.status(500).json({ error: "Error al obtener bautismos" });
+  const { data, error } = await supabase
+    .from("bautismos")
+    .select("*")
+    .order("fecha_bautismo", { ascending: false }); // Orden descendente por fecha
+
+  if (error) {
+    return res.status(500).json({ error: "Error al obtener bautismos" });
+  }
+
   return res.json(data);
 };
+
+
 
 // Obtener uno
 export const getBautismo = async (req: Request, res: Response) => {
