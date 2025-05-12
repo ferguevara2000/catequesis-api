@@ -58,7 +58,7 @@ export const updateDefuncion = async (req: Request, res: Response) => {
     .update(parsed.data)
     .eq("id", id);
 
-  if (error) return res.status(500).json({ error: `Error al actualizar defunción con ID ${id}` });
+  if (error) return res.status(500).json({ error: `Error al actualizar defunción con ID ${id}, error: ${error.message}` });
 
   return res.json({ message: "Defunción actualizada correctamente", data });
 };

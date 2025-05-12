@@ -12,6 +12,7 @@ import matrimonioRoutes from './routes/matrimonio.routes'
 import confirmacionRoutes from './routes/confirmacion.routes'
 import comunionRoutes from './routes/comunion.routes'
 import defuncionRoutes from './routes/defuncion.route'
+import finanzasRoutes from './routes/finanzas.routes'
 
 const PORT = process.env.PORT || 3001
 const allowedOrigins = [
@@ -44,5 +45,6 @@ app.use('/api/matrimonio', matrimonioRoutes)
 app.use('/api/confirmacion', confirmacionRoutes)
 app.use('/api/comunion', comunionRoutes)
 app.use('/api/defuncion', defuncionRoutes)
+app.use('/api/finanzas', finanzasRoutes)
 
 app.listen(PORT, () => console.log(`Listo por el puerto ${PORT}`))
