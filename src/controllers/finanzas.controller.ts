@@ -18,15 +18,33 @@ export const createFinanza = async (req: Request, res: Response) => {
   return res.status(201).json(data);
 };
 
-// Obtener todas las finanzas
+// Obtener todas las finanzas con el objeto completo del barrio
 export const getFinanzas = async (_req: Request, res: Response) => {
-  const { data, error } = await supabase.from("finanzas").select("*").order("actualizado_en", { ascending: false });
-  if (error) {
-    return res.status(500).json({ error: "Error al obtener registros de finanzas" });
-  }
+    const { data, error } = await supabase
+      .from("finanzas")
+      .select(`
+        *,
+        barrio:barrios (
+          *
+        )
+      `)
+  
+    if (error) {
+      return res.status(500).json({ error: "Error al obtener registros de finanzas" });
+    }
+  
+    return res.json(data);
+  };
+  
 
-  return res.json(data);
-};
+export const getAllBarrios = async (_req: Request, res: Response) => {
+    const { data, error } = await supabase.from("barrios").select("*");
+    if (error) {
+      return res.status(500).json({ error: "Error al obtener registros de los barrios" });
+    }
+  
+    return res.json(data);
+  };
 
 // Obtener finanza por barrio_id
 export const getFinanzaByBarrio = async (req: Request, res: Response) => {
