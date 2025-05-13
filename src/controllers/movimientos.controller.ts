@@ -26,10 +26,18 @@ export const createMovimiento = async (req: Request, res: Response) => {
 export const getMovimientos = async (_req: Request, res: Response) => {
   const { data, error } = await supabase
     .from("movimientos")
-    .select("*, finanzas(*)")
+    .select(`
+      *,
+      finanzas (
+        *,
+        barrios (*)
+      )
+    `)
     .order("fecha", { ascending: false });
 
-  if (error) return res.status(500).json({ error: "Error al obtener movimientos", details: error });
+  if (error) {
+    return res.status(500).json({ error: "Error al obtener movimientos", details: error });
+  }
 
   return res.json(data);
 };

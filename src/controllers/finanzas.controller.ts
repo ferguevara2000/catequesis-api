@@ -24,7 +24,7 @@ export const getFinanzas = async (_req: Request, res: Response) => {
       .from("finanzas")
       .select(`
         *,
-        barrio:barrios (
+        barrios:barrios (
           *
         )
       `)
