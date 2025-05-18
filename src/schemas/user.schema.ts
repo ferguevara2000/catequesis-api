@@ -10,6 +10,15 @@ export const usuarioSchema = z.object({
       message: "El nombre solo debe contener letras y espacios",
     }),
 
+  apellidos: z
+    .string()
+    .trim()
+    .min(3, { message: "El apellido debe tener al menos 3 caracteres" })
+    .max(100, { message: "El el apellido es demasiado largo" })
+    .regex(/^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]+$/, {
+      message: "El apellido solo debe contener letras y espacios",
+    }),
+
   usuario: z
     .string()
     .trim()
@@ -35,6 +44,17 @@ export const usuarioSchema = z.object({
   rol: z.enum(["Administrador", "Catequista", "Estudiante", "Parroco", "Tesorero"], {
     errorMap: () => ({ message: "Rol inválido" }),
   }),
+
+  barrio_id: z.number({ invalid_type_error: "El barrio es obligatorio" }),
+
+  representante: z
+    .string()
+    .trim()
+    .min(3, { message: "El representante debe tener al menos 3 caracteres" })
+    .max(100, { message: "El representante es demasiado largo" })
+    .regex(/^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]+$/, {
+      message: "El representante solo debe contener letras y espacios",
+    }).optional(),
 
   contraseña: z
     .string()

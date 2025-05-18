@@ -11,7 +11,7 @@ export const createUsuario = async (req: Request, res: Response) => {
       return res.status(400).json({ error: parsed.error.format() });
     }
 
-    const { nombre, usuario, rol, contraseña, email, phone } = parsed.data;
+    const { nombre, apellidos, usuario, rol, contraseña, email, phone, barrio_id, representante } = parsed.data;
 
     const { data: existingUser } = await supabase
       .from("usuario")
@@ -28,11 +28,14 @@ export const createUsuario = async (req: Request, res: Response) => {
     const { error: insertError } = await supabase.from("usuario").insert([
       {
         nombre: nombre.trim(),
+        apellidos: apellidos.trim(),
         usuario: usuario.trim(),
         rol,
         contraseña: hashedPassword,
         email: email.trim(),
         phone: phone.trim(),
+        barrio_id: barrio_id,
+        representante: representante
       },
     ]);
 
@@ -51,7 +54,7 @@ export const getUsuarios = async (_req: Request, res: Response) => {
   try {
     const { data, error } = await supabase
       .from("usuario")
-      .select("id, nombre, usuario, rol, email, phone");
+      .select("id, nombre, apellidos, usuario, rol, email, phone, barrio_id, representante, barrio:barrios (*)");
 
     if (error) {
       return res.status(500).json({ error: "Error al obtener usuarios" });
@@ -70,7 +73,7 @@ export const getUsuarioById = async (req: Request, res: Response) => {
 
     const { data, error } = await supabase
       .from("usuario")
-      .select("id, nombre, usuario, rol, email, phone")
+      .select("id, nombre, apellidos, usuario, rol, email, phone, barrio_id, representante, barrio:barrios (*)")
       .eq("id", id)
       .maybeSingle();
 
@@ -98,14 +101,17 @@ export const updateUsuario = async (req: Request, res: Response) => {
       return res.status(400).json({ error: parsed.error.format() });
     }
 
-    const { nombre, usuario, rol, contraseña, email, phone } = parsed.data;
+    const { nombre, apellidos, usuario, rol, contraseña, email, phone, barrio_id, representante } = parsed.data;
 
     const updates: any = {
       nombre: nombre?.trim(),
+      apellidos: apellidos?.trim(),
       usuario: usuario?.trim(),
       rol,
       email: email?.trim(),
       phone: phone?.trim(),
+      barrio_id: barrio_id,
+      representante: representante
     };
 
     if (contraseña) {
