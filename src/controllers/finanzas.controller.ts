@@ -20,22 +20,52 @@ export const createFinanza = async (req: Request, res: Response) => {
 
 // Obtener todas las finanzas con el objeto completo del barrio
 export const getFinanzas = async (_req: Request, res: Response) => {
-    const { data, error } = await supabase
+  try {
+    // Obtener registros de finanzas con relación a barrios
+    const { data: finanzas, error } = await supabase
       .from("finanzas")
       .select(`
         *,
         barrios:barrios (
           *
         )
-      `)
-  
+      `);
+
     if (error) {
-      return res.status(500).json({ error: "Error al obtener registros de finanzas" });
+      return res
+        .status(500)
+        .json({ error: "Error al obtener registros de finanzas", detalle: error.message });
     }
-  
-    return res.json(data);
-  };
-  
+
+    if (!finanzas) {
+      return res.json([]);
+    }
+
+    // Para cada registro, buscar el tesorero correspondiente
+    const resultadosConTesorero = await Promise.all(
+      finanzas.map(async (registro) => {
+        const { data: tesorero, error: errorTesorero } = await supabase
+          .from("usuario")
+          .select("id, nombre, apellidos, barrio_id, rol")
+          .eq("rol", "Tesorero")
+          .eq("barrio_id", registro.barrio_id)
+          .maybeSingle();
+
+        return {
+          ...registro,
+          tesorero: tesorero || null,
+        };
+      })
+    );
+
+    return res.json(resultadosConTesorero);
+  } catch (error: any) {
+    return res.status(500).json({
+      error: "Error en el servidor",
+      detalle: error.message ?? error,
+    });
+  }
+};
 
 export const getAllBarrios = async (_req: Request, res: Response) => {
     const { data, error } = await supabase.from("barrios").select("*");
