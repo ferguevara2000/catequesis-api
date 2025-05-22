@@ -5,16 +5,77 @@ import { comunicacionSchema } from "../schemas/comunicacion.schema";
 export const createComunicacion = async (req: Request, res: Response) => {
   const parsed = comunicacionSchema.safeParse(req.body);
   if (!parsed.success) {
-    return res.status(400).json({ error: "Validación fallida", detalles: parsed.error.errors });
+    return res.status(400).json({
+      error: "Validación fallida",
+      detalles: parsed.error.errors,
+    });
   }
 
-  const { data, error } = await supabase.from("comunicaciones").insert([parsed.data]);
+  // Insertar la comunicación
+  const { data, error } = await supabase
+    .from("comunicaciones")
+    .insert([parsed.data])
+    .select()
+    .single();
 
   if (error) {
-    return res.status(500).json({ error: "Error al insertar comunicación", detalles: error });
+    return res.status(500).json({
+      error: "Error al insertar comunicación",
+      detalles: error,
+    });
   }
 
-  return res.status(201).json(data);
+  const comunicacion = data;
+  const dirigidoA: string[] = comunicacion.dirigido_a;
+
+  // Mapeo para convertir los valores del frontend a los valores reales del campo "rol"
+  const mapDirigidoARol: Record<string, string> = {
+    Catequistas: "Catequista",
+    Estudiantes: "Estudiante",
+  };
+
+  const rolesFiltrados = dirigidoA
+    .filter((rol) => rol !== "Todos")
+    .map((rol) => mapDirigidoARol[rol])
+    .filter(Boolean); // Por si acaso hay alguno no mapeado
+
+  let usuariosQuery = supabase.from("usuario").select("id");
+
+  if (!dirigidoA.includes("Todos")) {
+    usuariosQuery = usuariosQuery.in("rol", rolesFiltrados);
+  }
+
+  const { data: usuarios, error: usuariosError } = await usuariosQuery;
+
+  if (usuariosError) {
+    return res.status(500).json({
+      error: "Error al obtener usuarios",
+      detalles: usuariosError,
+    });
+  }
+
+  // Crear las notificaciones
+  const notificaciones = usuarios.map((usuario) => ({
+    comunicacion_id: comunicacion.id,
+    usuario_id: usuario.id,
+    leida: false,
+  }));
+
+  const { error: errorNotificaciones } = await supabase
+    .from("notificaciones_usuario")
+    .insert(notificaciones);
+
+  if (errorNotificaciones) {
+    return res.status(500).json({
+      error: "Error al insertar notificaciones",
+      detalles: errorNotificaciones,
+    });
+  }
+
+  return res.status(201).json({
+    mensaje: "Comunicación creada y notificaciones enviadas",
+    comunicacion,
+  });
 };
 
 export const getComunicaciones = async (_req: Request, res: Response) => {

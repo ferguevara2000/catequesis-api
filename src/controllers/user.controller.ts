@@ -193,6 +193,54 @@ export const updatePassword = async (req: Request, res: Response) => {
   }
 };
 
+export const updatePasswordWithVerification = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { contraseña_actual, nueva_contraseña } = req.body;
+
+    // 1. Validar nueva contraseña
+    const parsed = usuarioSchema.pick({ contraseña: true }).safeParse({ contraseña: nueva_contraseña });
+
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.format() });
+    }
+
+    // 2. Buscar usuario actual
+    const { data: usuario, error: userError } = await supabase
+      .from("usuario")
+      .select("id, contraseña") // ¡IMPORTANTE!
+      .eq("id", id)
+      .single();
+
+    if (userError || !usuario) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
+
+    // 3. Comparar contraseñas
+    const passwordValida = await bcrypt.compare(contraseña_actual, (usuario as any).contraseña);
+
+    if (!passwordValida) {
+      return res.status(401).json({ code: "CONTRASEÑA_INCORRECTA", error: "La contraseña actual es incorrecta" });
+    }
+
+    // 4. Hashear nueva contraseña
+    const hashedPassword = await bcrypt.hash(nueva_contraseña.trim(), 10);
+
+    const { error: updateError } = await supabase
+      .from("usuario")
+      .update({ contraseña: hashedPassword })
+      .eq("id", id);
+
+    if (updateError) {
+      return res.status(500).json({ error: "Error al actualizar contraseña" });
+    }
+
+    return res.json({ message: "Contraseña actualizada correctamente" });
+  } catch (error) {
+    return res.status(500).json({ error: "Error en el servidor" });
+  }
+};
+
 export const getCatequistas = async (_req: Request, res: Response) => {
   try {
     const { data, error } = await supabase

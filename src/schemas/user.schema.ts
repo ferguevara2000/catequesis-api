@@ -47,14 +47,17 @@ export const usuarioSchema = z.object({
 
   barrio_id: z.number({ invalid_type_error: "El barrio es obligatorio" }),
 
-  representante: z
-    .string()
-    .trim()
-    .min(3, { message: "El representante debe tener al menos 3 caracteres" })
-    .max(100, { message: "El representante es demasiado largo" })
-    .regex(/^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]+$/, {
-      message: "El representante solo debe contener letras y espacios",
-    }).optional(),
+representante: z
+  .string()
+  .trim()
+  .transform((val) => val === "" ? undefined : val)
+  .optional()
+  .refine((val) => val === undefined || val.length >= 3, {
+    message: "El representante debe tener al menos 3 caracteres",
+  })
+  .refine((val) => val === undefined || /^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]+$/.test(val), {
+    message: "El representante solo debe contener letras y espacios",
+  }),
 
   contraseña: z
     .string()
