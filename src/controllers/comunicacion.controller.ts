@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { supabase } from "../lib/supabase";
 import { comunicacionSchema } from "../schemas/comunicacion.schema";
+import { enviarCorreoNotificacion } from "../utils/emailTest";
 
 export const createComunicacion = async (req: Request, res: Response) => {
   const parsed = comunicacionSchema.safeParse(req.body);
@@ -11,7 +12,6 @@ export const createComunicacion = async (req: Request, res: Response) => {
     });
   }
 
-  // Insertar la comunicación
   const { data, error } = await supabase
     .from("comunicaciones")
     .insert([parsed.data])
@@ -28,7 +28,6 @@ export const createComunicacion = async (req: Request, res: Response) => {
   const comunicacion = data;
   const dirigidoA: string[] = comunicacion.dirigido_a;
 
-  // Mapeo para convertir los valores del frontend a los valores reales del campo "rol"
   const mapDirigidoARol: Record<string, string> = {
     Catequistas: "Catequista",
     Estudiantes: "Estudiante",
@@ -37,9 +36,9 @@ export const createComunicacion = async (req: Request, res: Response) => {
   const rolesFiltrados = dirigidoA
     .filter((rol) => rol !== "Todos")
     .map((rol) => mapDirigidoARol[rol])
-    .filter(Boolean); // Por si acaso hay alguno no mapeado
+    .filter(Boolean);
 
-  let usuariosQuery = supabase.from("usuario").select("id");
+  let usuariosQuery = supabase.from("usuario").select("id, email");
 
   if (!dirigidoA.includes("Todos")) {
     usuariosQuery = usuariosQuery.in("rol", rolesFiltrados);
@@ -54,7 +53,6 @@ export const createComunicacion = async (req: Request, res: Response) => {
     });
   }
 
-  // Crear las notificaciones
   const notificaciones = usuarios.map((usuario) => ({
     comunicacion_id: comunicacion.id,
     usuario_id: usuario.id,
@@ -72,8 +70,14 @@ export const createComunicacion = async (req: Request, res: Response) => {
     });
   }
 
+  await enviarCorreoNotificacion({
+    destinatarios: usuarios.map((u) => u.email), // asegúrate de que estés consultando los emails
+    asunto: "Nueva comunicación de la parroquia",
+    mensajeHtml: `<p>${comunicacion.titulo}</p><p>${comunicacion.mensaje}</p>`,
+  });
+
   return res.status(201).json({
-    mensaje: "Comunicación creada y notificaciones enviadas",
+    mensaje: "Comunicación creada, notificaciones guardadas y correos enviados",
     comunicacion,
   });
 };
