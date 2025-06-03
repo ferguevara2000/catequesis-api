@@ -1,7 +1,9 @@
 // enviarCorreoNotificacion.ts
 import nodemailer from "nodemailer";
+import dotenv from "dotenv";
 
-// Función para enviar notificaciones por correo usando Ethereal (modo prueba)
+dotenv.config(); // Cargar variables del .env
+
 export const enviarCorreoNotificacion = async ({
   destinatarios,
   asunto,
@@ -12,28 +14,34 @@ export const enviarCorreoNotificacion = async ({
   mensajeHtml: string;
 }) => {
   try {
-    // Crear cuenta temporal para pruebas
-    const testAccount = await nodemailer.createTestAccount();
+    console.log("📨 Enviando correo a:", destinatarios);
+    console.log("📧 Asunto:", asunto);
+    console.log("📝 Contenido HTML:", mensajeHtml);
+
+    // Verifica que las variables de entorno estén cargadas
+    console.log("🔐 EMAIL_USER:", process.env.EMAIL_USER);
+    console.log("🔐 EMAIL_PASS existe:", !!process.env.EMAIL_PASS);
 
     const transporter = nodemailer.createTransport({
-      host: "smtp.ethereal.email",
-      port: 587,
-      secure: false, // true para 465, false para otros
+      service: "gmail",
       auth: {
-        user: testAccount.user,
-        pass: testAccount.pass,
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
       },
     });
 
+    console.log("🚚 Transportador creado, enviando mensaje...");
+
     const info = await transporter.sendMail({
-      from: `"Parroquia Montalvo" <parroquia@prueba.com>`,
+      from: `"Parroquia Montalvo" <${process.env.EMAIL_USER}>`,
       to: destinatarios.join(", "),
       subject: asunto,
       html: mensajeHtml,
     });
 
-    console.log("✅ Correo enviado:", info.messageId);
-    console.log("📬 Vista previa:", nodemailer.getTestMessageUrl(info));
+    console.log("✅ Correo enviado correctamente");
+    console.log("📩 ID del mensaje:", info.messageId);
+    console.log("📤 Respuesta completa:", info);
   } catch (error) {
     console.error("❌ Error al enviar el correo:", error);
   }
