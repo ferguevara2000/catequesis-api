@@ -57,6 +57,32 @@ export const getMovimientoById = async (req: Request, res: Response) => {
   return res.json(data);
 };
 
+export const getMovimientosByBarrioId = async (req: Request, res: Response) => {
+  const { barrio_id } = req.params;
+
+  if (!barrio_id) {
+    return res.status(400).json({ error: "Se requiere el parámetro barrio_id en la URL" });
+  }
+
+  const { data, error } = await supabase
+    .from("movimientos")
+    .select(`
+      *,
+      finanzas (
+        *,
+        barrios (*)
+      )
+    `)
+    .order("fecha", { ascending: false })
+    .eq("finanzas.barrio_id", barrio_id); // Asegúrate de que barrio_id está en la tabla finanzas
+
+  if (error) {
+    return res.status(500).json({ error: "Error al obtener movimientos", details: error });
+  }
+
+  return res.json(data);
+};
+
 // Actualizar
 export const updateMovimiento = async (req: Request, res: Response) => {
   const { id } = req.params;

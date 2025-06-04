@@ -44,7 +44,8 @@ export const login = async (req: Request, res: Response) => {
     nombre: user.nombre,
     apellidos: user.apellidos,
     usuario: user.usuario,
-    rol: user.rol
+    rol: user.rol,
+    barrio_id: user.barrio_id
   });
 };
 
