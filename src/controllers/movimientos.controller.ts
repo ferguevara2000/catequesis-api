@@ -68,13 +68,13 @@ export const getMovimientosByBarrioId = async (req: Request, res: Response) => {
     .from("movimientos")
     .select(`
       *,
-      finanzas (
+      finanzas!inner ( 
         *,
         barrios (*)
       )
     `)
     .order("fecha", { ascending: false })
-    .eq("finanzas.barrio_id", barrio_id); // Asegúrate de que barrio_id está en la tabla finanzas
+    .eq("finanzas.barrio_id", barrio_id);
 
   if (error) {
     return res.status(500).json({ error: "Error al obtener movimientos", details: error });

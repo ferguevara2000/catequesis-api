@@ -127,3 +127,45 @@ export const deleteFinanza = async (req: Request, res: Response) => {
 
   return res.json({ message: "Registro eliminado correctamente" });
 };
+
+export const getFinanzasPorBarrio = async (req: Request, res: Response) => {
+  try {
+    const { barrioId } = req.params;
+    console.log(barrioId)
+
+    // 1. Buscar la finanza por barrio_id
+    const { data: finanzas, error: finanzasError } = await supabase
+      .from('finanzas')
+      .select('id, total_ingresos, total_egresos, saldo')
+      .eq('barrio_id', barrioId)
+      .single();
+
+    if (finanzasError || !finanzas) {
+      return res.status(404).json({ message: 'No se encontró la información financiera del barrio' });
+    }
+
+    const finanzaId = finanzas.id;
+
+    // 2. Buscar movimientos relacionados
+    const { data: movimientos, error: movimientosError } = await supabase
+      .from('movimientos')
+      .select('tipo, monto, descripcion, fecha')
+      .eq('finanza_id', finanzaId)
+      .order('fecha', { ascending: false });
+
+    if (movimientosError) {
+      return res.status(500).json({ message: 'Error al obtener los movimientos' });
+    }
+
+    // 3. Responder al cliente
+    return res.status(200).json({
+      total_ingresos: finanzas.total_ingresos,
+      total_egresos: finanzas.total_egresos,
+      saldo: finanzas.saldo,
+      movimientos: movimientos || []
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Error interno del servidor' });
+  }
+};
