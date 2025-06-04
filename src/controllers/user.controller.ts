@@ -308,7 +308,7 @@ export const recuperarContrasena = async (req: Request, res: Response) => {
     // Actualizar la contraseña en Supabase
     const { error: updateError } = await supabase
       .from("usuario")
-      .update({ contrasena: hash })
+      .update({ contraseña: hash })
       .eq("email", email)
 
     if (updateError) {
