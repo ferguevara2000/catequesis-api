@@ -46,3 +46,54 @@ export const enviarCorreoNotificacion = async ({
     console.error("❌ Error al enviar el correo:", error);
   }
 };
+
+const generarContrasenaTemporal = (longitud = 10): string => {
+  const caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+  let contrasena = "";
+  for (let i = 0; i < longitud; i++) {
+    contrasena += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+  }
+  return contrasena;
+};
+
+export const enviarCorreoRecuperacion = async (correo: string): Promise<string | null> => {
+  try {
+    const contrasenaTemporal = generarContrasenaTemporal();
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    const asunto = "Recuperación de contraseña - Parroquia Montalvo";
+    const mensajeHtml = `
+      <div style="font-family: Arial, sans-serif; line-height: 1.5;">
+        <h2>Hola,</h2>
+        <p>Hemos recibido una solicitud para restablecer tu contraseña.</p>
+        <p>Tu nueva contraseña temporal es:</p>
+        <p style="font-size: 18px; font-weight: bold; color: #2c3e50;">${contrasenaTemporal}</p>
+        <p>Por favor, inicia sesión y cámbiala lo antes posible.</p>
+        <hr />
+        <p style="font-size: 12px; color: #888;">Si no solicitaste este cambio, ignora este correo.</p>
+      </div>
+    `;
+
+    const info = await transporter.sendMail({
+      from: `"Parroquia Montalvo" <${process.env.EMAIL_USER}>`,
+      to: correo,
+      subject: asunto,
+      html: mensajeHtml,
+    });
+
+    console.log("✅ Correo enviado a:", correo);
+    console.log("📩 ID del mensaje:", info.messageId);
+
+    return contrasenaTemporal; // puedes guardar esta contraseña temporal en la base de datos
+  } catch (error) {
+    console.error("❌ Error al enviar el correo de recuperación:", error);
+    return null;
+  }
+};

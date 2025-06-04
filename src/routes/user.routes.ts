@@ -8,6 +8,7 @@ router.get('/', UsuarioController.getUsuarios as any);
 router.get('/catequistas', UsuarioController.getCatequistas as any)
 router.get('/estudiantes', UsuarioController.getEstudiantes as any)
 router.get('/:id', UsuarioController.getUsuarioById as any);
+router.post('/recovery', UsuarioController.recuperarContrasena as any)
 router.post('/', UsuarioController.createUsuario as any);
 router.put('/:id', UsuarioController.updateUsuario as any);
 router.delete('/:id', UsuarioController.deleteUsuario as any);

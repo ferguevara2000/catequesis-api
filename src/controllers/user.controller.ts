@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { usuarioSchema } from "../schemas/user.schema";
 import { supabase } from "../lib/supabase";
 import bcrypt from "bcryptjs";
+import { enviarCorreoRecuperacion } from "../utils/emailTest";
 
 // Crear usuario
 export const createUsuario = async (req: Request, res: Response) => {
@@ -274,3 +275,49 @@ export const getEstudiantes = async (_req: Request, res: Response) => {
     return res.status(500).json({ error: "Error en el servidor" });
   }
 };
+
+export const recuperarContrasena = async (req: Request, res: Response) => {
+  const { email } = req.body
+
+  if (!email) {
+    return res.status(400).json({ message: "El correo es obligatorio" })
+  }
+
+  try {
+    // Verificar si existe el usuario
+    const { data: usuario, error } = await supabase
+      .from("usuario")
+      .select("*")
+      .eq("email", email)
+      .single()
+
+    if (error || !usuario) {
+      return res.status(404).json({ message: "No existe una cuenta asociada a este correo" })
+    }
+
+    // Enviar correo y obtener contraseña temporal
+    const contrasenaTemporal = await enviarCorreoRecuperacion(email)
+
+    if (!contrasenaTemporal) {
+      return res.status(500).json({ message: "Error al enviar el correo de recuperación" })
+    }
+
+    // Hashear la nueva contraseña
+    const hash = await bcrypt.hash(contrasenaTemporal, 10)
+
+    // Actualizar la contraseña en Supabase
+    const { error: updateError } = await supabase
+      .from("usuario")
+      .update({ contrasena: hash })
+      .eq("email", email)
+
+    if (updateError) {
+      return res.status(500).json({ message: "Error al actualizar la contraseña" })
+    }
+
+    return res.status(200).json({ message: "Correo enviado y contraseña actualizada" })
+  } catch (error) {
+    console.error("❌ Error al recuperar contraseña:", error)
+    return res.status(500).json({ message: "Error en el servidor" })
+  }
+}
