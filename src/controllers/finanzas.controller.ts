@@ -131,7 +131,6 @@ export const deleteFinanza = async (req: Request, res: Response) => {
 export const getFinanzasPorBarrio = async (req: Request, res: Response) => {
   try {
     const { barrioId } = req.params;
-    console.log(barrioId)
 
     // 1. Buscar la finanza por barrio_id
     const { data: finanzas, error: finanzasError } = await supabase
@@ -151,7 +150,8 @@ export const getFinanzasPorBarrio = async (req: Request, res: Response) => {
       .from('movimientos')
       .select('tipo, monto, descripcion, fecha')
       .eq('finanza_id', finanzaId)
-      .order('fecha', { ascending: false });
+      .order('fecha', { ascending: false })
+      .limit(1);
 
     if (movimientosError) {
       return res.status(500).json({ message: 'Error al obtener los movimientos' });

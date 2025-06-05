@@ -106,3 +106,30 @@ export const deleteAsistencia = async (req: Request, res: Response) => {
 
   return res.json({ message: "Asistencia eliminada correctamente" });
 };
+
+export const getFechasAsistenciaPorCurso = async (req: Request, res: Response) => {
+  const { cursoId } = req.params
+
+  try {
+    const { data, error } = await supabase
+      .from("asistencia")
+      .select("fecha, estudiantes_cursos!inner(curso_id)")
+      .eq("estudiantes_cursos.curso_id", cursoId)
+
+    if (error) {
+      console.error("Error al consultar asistencias:", error)
+      return res.status(500).json({ error: "Error al obtener fechas de asistencia" })
+    }
+
+    // Extraer y agrupar fechas únicas
+    const fechasUnicas = Array.from(
+      new Set(data.map((item) => item.fecha))
+    ).sort((a, b) => b.localeCompare(a)) // Orden descendente por fecha
+
+    res.json(fechasUnicas)
+  } catch (err) {
+    console.error("Error inesperado:", err)
+    res.status(500).json({ error: "Error interno del servidor" })
+  }
+}
+
