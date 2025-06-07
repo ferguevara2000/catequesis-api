@@ -133,3 +133,48 @@ export const getFechasAsistenciaPorCurso = async (req: Request, res: Response) =
   }
 }
 
+export async function getAsistenciaResumenPorCurso(req: Request, res: Response) {
+  const curso_id = req.params.curso_id;
+
+  try {
+    const { data, error } = await supabase
+      .from('estudiantes_cursos')
+      .select(`
+        id,
+        usuario:usuario (
+          nombre,
+          apellidos
+        ),
+        asistencias:asistencia (
+          estado
+        )
+      `)
+      .eq('curso_id', curso_id);
+
+    if (error) {
+      return res.status(500).json({ message: "Error al obtener datos", error });
+    }
+
+    // Procesar para calcular porcentaje
+    const resumen = data.map((matricula: any) => {
+      const total = matricula.asistencias.length;
+      const asistencias = matricula.asistencias.filter(
+    (a: any) => a.estado === "Presente" || a.estado === "Justificado"
+  ).length;
+      const porcentaje = total > 0 ? +( (asistencias / total) * 100 ).toFixed(2) : 0;
+      return {
+        matricula_id: matricula.id,
+        nombre: matricula.usuario.nombre + " " + matricula.usuario.apellidos,
+        total_sesiones: total,
+        asistencias,
+        porcentaje_asistencia: porcentaje,
+      };
+    });
+
+    return res.json(resumen);
+
+  } catch (error) {
+    return res.status(500).json({ message: "Error inesperado", error });
+  }
+}
+
