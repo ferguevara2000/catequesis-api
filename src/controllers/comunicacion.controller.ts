@@ -95,6 +95,17 @@ export const getComunicaciones = async (_req: Request, res: Response) => {
   return res.json(data);
 };
 
+export const getComunicadosParaTodos = async (_req: Request, res: Response) => {
+  const { data, error } = await supabase
+    .from("comunicaciones")
+    .select("*")
+    .contains("dirigido_a", ["Todos"])
+    .order("fecha", { ascending: false });
+
+  if (error) return res.status(500).json(error);
+  return res.json(data);
+};
+
 export const updateComunicacion = async (req: Request, res: Response) => {
     const id = Number(req.params.id);
     if (isNaN(id)) {
