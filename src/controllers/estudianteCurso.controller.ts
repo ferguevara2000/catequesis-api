@@ -235,3 +235,44 @@ export const deleteEstudianteCurso = async (req: Request, res: Response) => {
     return res.status(500).json({ error: "Error en el servidor" });
   }
 };
+
+// Obtener el curso de un estudiante por su usuario_id
+export const getCursoByEstudianteId = async (req: Request, res: Response) => {
+  try {
+    const { usuarioId } = req.params;
+
+    const { data, error } = await supabase
+      .from("estudiantes_cursos")
+      .select(`
+        id,
+        estado,
+        curso: curso_id (
+          *,
+          catequista: catequista_id (
+            id,
+            nombre,
+            apellidos
+          ),
+            nivel: nivel_id (
+              id,
+              nombre
+            )
+        )
+      `)
+      .eq("usuario_id", usuarioId)
+      .maybeSingle(); // si solo hay un curso por estudiante
+
+    if (error) {
+      return res.status(500).json({ error: "Error al obtener curso del estudiante" });
+    }
+
+    if (!data) {
+      return res.status(404).json({ error: "El estudiante no está inscrito en ningún curso" });
+    }
+
+    return res.json(data);
+  } catch (error) {
+    return res.status(500).json({ error: "Error en el servidor" });
+  }
+};
+
