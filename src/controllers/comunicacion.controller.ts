@@ -2,6 +2,14 @@ import { Request, Response } from "express";
 import { supabase } from "../lib/supabase";
 import { comunicacionSchema } from "../schemas/comunicacion.schema";
 import { enviarCorreoNotificacion } from "../utils/emailTest";
+import webpush from "web-push";
+
+// Configura tus claves VAPID (puedes ponerlas en variables de entorno)
+webpush.setVapidDetails(
+  "mailto:ferguevara3c@gmail.com",
+  "BIiF29te7oMuYrMajQS6vztjRsrEFWSpWANnF0lqmVKsNSIXuVgY3m_y13Q-rDcypkcJikpFj46M0ijGmKIXhqc",
+  "bzC1-BMlbEc1_7NGy6UVtyPSx3FmdgOXxTAZMMbXhjI"
+);
 
 export const createComunicacion = async (req: Request, res: Response) => {
   const parsed = comunicacionSchema.safeParse(req.body);
@@ -76,6 +84,28 @@ export const createComunicacion = async (req: Request, res: Response) => {
     mensajeHtml: `<p>${comunicacion.titulo}</p><p>${comunicacion.mensaje}</p>`,
   });
 
+  // OBTENER SUSCRIPCIONES PUSH DE LOS USUARIOS
+    const { data: subs, error: subsError } = await supabase
+    .from("push_subscriptions")
+    .select("*");
+
+  if (!subsError && subs) {
+    const payload = JSON.stringify({
+      title: "Nuevo comunicado de la parroquia",
+      body: comunicacion.titulo,
+      url: "http://localhost:3000/comunicados/" + comunicacion.id,
+    });
+
+    for (const sub of subs) {
+      try {
+        await webpush.sendNotification(sub.subscription, payload);
+      } catch (err) {
+        // Puedes loguear el error si la suscripción ya no es válida
+        console.error("Error enviando push:", err);
+      }
+    }
+  }
+
   return res.status(201).json({
     mensaje: "Comunicación creada, notificaciones guardadas y correos enviados",
     comunicacion,
@@ -90,6 +120,25 @@ export const getComunicaciones = async (_req: Request, res: Response) => {
 
   if (error) {
     return res.status(500).json({ error: "Error al obtener comunicaciones", detalles: error });
+  }
+
+  return res.json(data);
+};
+
+export const getComunicacionById = async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  const { data, error } = await supabase
+    .from("comunicaciones")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    return res.status(404).json({
+      error: "No se pudo encontrar el comunicado",
+      detalles: error.message,
+    });
   }
 
   return res.json(data);

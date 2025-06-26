@@ -17,6 +17,7 @@ import movimientosRoutes from './routes/movimientos.routes'
 import comunicacionRoutes from './routes/comunicacion.route'
 import notificacionesRoutes from './routes/notificaciones.routes'
 import certificacionesRoutes from './routes/certificaciones.routes'
+import pushRoutes from './routes/subscribe.route'
 
 const PORT = process.env.PORT || 3001
 const allowedOrigins = [
@@ -54,5 +55,6 @@ app.use('/api/movimientos', movimientosRoutes)
 app.use('/api/comunicacion', comunicacionRoutes)
 app.use('/api/notificaciones', notificacionesRoutes)
 app.use('/api/certificaciones', certificacionesRoutes)
+app.use('/api/push', pushRoutes)
 
 app.listen(PORT, () => console.log(`Listo por el puerto ${PORT}`))
