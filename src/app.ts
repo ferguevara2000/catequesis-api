@@ -24,7 +24,7 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://192.168.1.3:3000',
   'https://pwa-catequesis-frontend.vercel.app',
-  'https://sanmigueldemontalvo.vercel.app/'
+  'https://sanmigueldemontalvo.vercel.app'
 ];
 
 const app = express()
